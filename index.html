@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRYPTA MiniGame + Whitelist</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0a0a;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow-x: hidden;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #00cfff;
+      text-shadow: 0 0 10px #00cfff;
+    }
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .game-container {
+      margin: 40px auto;
+      max-width: 400px;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,207,255,0.5);
+    }
+    #character {
+      width: 120px;
+      height: 120px;
+      margin: 20px auto;
+      background: url("https://i.ibb.co/7jB3qL0/miner.png") no-repeat center/contain;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    #character:active {
+      transform: scale(0.9);
+    }
+    #score {
+      font-size: 1.5em;
+      margin: 10px 0;
+    }
+    #timer {
+      font-size: 1.2em;
+      color: #ff00ff;
+    }
+    .btn {
+      background: linear-gradient(90deg, #00cfff, #ff00ff);
+      border: none;
+      padding: 12px 20px;
+      color: #fff;
+      font-size: 1em;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      opacity: 0.8;
+    }
+    .whitelist {
+      margin: 50px auto;
+      max-width: 400px;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,0,255,0.5);
+    }
+    .whitelist input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <h1>CRYPTA MiniGame</h1>
+
+  <div class="game-container">
+    <div id="character"></div>
+    <div id="score">💎 Punti: 0</div>
+    <div id="timer">⏳ Tempo: 30s</div>
+    <button class="btn" onclick="startGame()">▶ Inizia</button>
+  </div>
+
+  <div class="whitelist">
+    <h2>📩 Iscriviti alla Whitelist</h2>
+    <form id="whitelistForm">
+      <input type="text" id="name" placeholder="Nome" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <button type="submit" class="btn">Iscriviti</button>
+      <div id="status"></div>
+    </form>
+  </div>
+
+  <!-- PARTICLES & EMAILJS -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+  <script>
+    emailjs.init("lVbvQ-k8Ag55E0Bqa");
+
+    // PARTICELLE
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 80 },
+        color: { value: ["#00cfff","#ff00ff"] },
+        shape: { type: "circle" },
+        opacity: { value: 0.5 },
+        size: { value: 3 },
+        line_linked: { enable: true, distance: 120, color: "#00cfff", opacity: 0.3, width: 1 },
+        move: { enable:true, speed:2 }
+      },
+      interactivity: {
+        detect_on:"canvas",
+        events:{ onhover:{ enable:true, mode:"repulse" }, onclick:{ enable:true, mode:"push" } },
+        modes:{ repulse:{ distance:100 }, push:{ particles_nb:4 } }
+      }
+    });
+
+    // GIOCO
+    let score = 0;
+    let timeLeft = 30;
+    let timerInterval;
+    let gameActive = false;
+
+    const character = document.getElementById("character");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+
+    character.addEventListener("click", () => {
+      if(gameActive){
+        score++;
+        scoreEl.textContent = "💎 Punti: " + score;
+      }
+    });
+
+    function startGame(){
+      score = 0;
+      timeLeft = 30;
+      gameActive = true;
+      scoreEl.textContent = "💎 Punti: 0";
+      timerEl.textContent = "⏳ Tempo: 30s";
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(()=>{
+        timeLeft--;
+        timerEl.textContent = "⏳ Tempo: " + timeLeft + "s";
+        if(timeLeft <= 0){
+          clearInterval(timerInterval);
+          gameActive = false;
+          alert("⛏️ Gioco finito! Hai totalizzato " + score + " punti!");
+        }
+      },1000);
+    }
+
+    // WHITELIST
+    const form = document.getElementById("whitelistForm");
+    const status = document.getElementById("status");
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if(!name || !email){ status.textContent="❌ Compila tutti i campi"; return; }
+      if(!re.test(email)){ status.textContent="❌ Inserisci un'email valida"; return; }
+
+      const templateParams = {
+        subject:`🎯 Nuova Whitelist NFT - ${name}`,
+        from_name:name,
+        from_email:email,
+        reply_to:email,
+        date:new Date().toLocaleString(),
+        site: window.location.hostname,
+        message:`Nuova iscrizione whitelist da ${name} (${email})`
+      };
+
+      emailjs.send("service_0dcu1j8","template_edsdw29",templateParams)
+        .then(res=>{ status.textContent="✅ Iscrizione completata!"; form.reset(); setTimeout(()=>{status.textContent=""},5000); })
+        .catch(err=>{ status.textContent="❌ Errore tecnico. Riprova più tardi."; console.error(err); });
+    });
+  </script>
+</body>
+</html>
