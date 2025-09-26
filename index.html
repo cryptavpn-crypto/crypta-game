@@ -1,117 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CRYPTA Mining Game</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #0d0d0d, #1a1a1a);
-      color: white;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CRYPTA Miner</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
 
-    header {
-      padding: 20px;
-    }
-
-    header img {
-      width: 100px;
-      height: 100px;
-      border-radius: 20px;
-    }
-
-    h1 {
-      margin: 10px 0;
-      font-size: 24px;
-    }
-
-    #game {
-      margin-top: 30px;
-    }
-
-    #mine-btn {
-      padding: 15px 30px;
-      font-size: 20px;
-      background: #00ffcc;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    #mine-btn:hover {
-      background: #00e6b8;
-    }
-
-    #score {
-      font-size: 22px;
-      margin: 20px 0;
-    }
-
-    form {
-      margin-top: 20px;
-    }
-
-    input[type="email"] {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      width: 250px;
-    }
-
-    button[type="submit"] {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-left: 10px;
-      border-radius: 8px;
-      border: none;
-      background: #ff0066;
-      color: white;
-      cursor: pointer;
-    }
-
-    button[type="submit"]:hover {
-      background: #e6005c;
-    }
-  </style>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color: transparent; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#17212b; color:#fff; min-height:100vh; padding:12px; display:flex; flex-direction:column; overflow-x:hidden;}
+  .container { max-width:380px; margin:0 auto; width:100%; }
+  .header { text-align:center; margin-bottom:20px; }
+  .title { font-size:28px; font-weight:700; margin-bottom:8px; background:linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subtitle { font-size:14px; opacity:0.7; margin-bottom:12px; }
+  .level-badge { background:#5288c1; color:#fff; padding:6px 16px; border-radius:16px; font-size:12px; font-weight:600; display:inline-block; }
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .stat-card { background:rgba(255,255,255,0.1); border-radius:12px; padding:16px; text-align:center; transition:transform 0.2s; }
+  .stat-value { font-size:24px; font-weight:700; line-height:1.2; margin-bottom:4px; }
+  .stat-label { font-size:12px; opacity:0.7; }
+  .progress-container { background:rgba(255,255,255,0.1); border-radius:12px; padding:8px; margin-bottom:20px; }
+  .progress-bar { height:8px; background:rgba(255,255,255,0.2); border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#10b981,#3b82f6); border-radius:4px; transition:width 0.3s ease; }
+  .progress-warning { background:linear-gradient(90deg,#f59e0b,#ef4444)!important; animation:pulse 1s infinite; }
+  @keyframes pulse {0%,100%{opacity:1;}50%{opacity:0.7;}}
+  .miner-container { text-align:center; margin:20px 0; }
+  .miner-circle { width:180px; height:180px; margin:0 auto 16px; background:linear-gradient(145deg,#ffffff,#f0f0f0); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:64px; cursor:pointer; transition:all 0.15s; box-shadow:0 8px 25px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 4px rgba(0,0,0,0.1);}
+  .miner-circle:active { transform:scale(0.95); box-shadow:0 4px 15px rgba(0,0,0,0.2), inset 0 3px 8px rgba(0,0,0,0.15);}
+  .combo-active { animation: combo-glow 0.5s infinite alternate; }
+  @keyframes combo-glow { 0% {box-shadow:0 8px 25px rgba(255,215,0,0.3), inset 0 2px 4px rgba(255,255,255,0.9);} 100% {box-shadow:0 12px 35px rgba(255,215,0,0.6), inset 0 2px 4px rgba(255,255,255,0.9);} }
+  .combo-indicator { background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#000; padding:8px 16px; border-radius:20px; font-weight:700; font-size:14px; margin-bottom:12px; display:none; }
+  .upgrades-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  .upgrade-card { background:rgba(255,255,255,0.1); border-radius:12px; padding:16px; text-align:center; cursor:pointer; transition:all 0.2s; border:2px solid transparent; }
+  .upgrade-card:active { transform:scale(0.95); }
+  .upgrade-unavailable { opacity:0.5; cursor:not-allowed; }
+  .upgrade-icon { font-size:24px; margin-bottom:8px; }
+  .upgrade-name { font-weight:600; font-size:13px; margin-bottom:4px; }
+  .upgrade-desc { font-size:11px; opacity:0.7; margin-bottom:8px; }
+  .upgrade-cost { color:#fbbf24; font-weight:700; font-size:12px; }
+  .btn-primary { background:#5288c1; color:#fff; border:none; border-radius:12px; padding:16px 24px; font-size:16px; font-weight:600; cursor:pointer; width:100%; transition:all 0.2s; }
+  .btn-primary:active { transform:scale(0.98); }
+  .game-over-card { background:rgba(255,255,255,0.1); border-radius:16px; padding:24px; margin-bottom:20px; text-align:center; }
+  .result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .result-row:last-child { border-bottom:none; }
+  .result-label { opacity:0.7; }
+  .result-value { font-weight:700; }
+  .active-upgrades { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:16px; }
+  .upgrade-badge { background:rgba(82,136,193,0.2); color:#fff; padding:4px 12px; border-radius:12px; font-size:11px; font-weight:600; }
+  .particle { position:fixed; pointer-events:none; z-index:1000; font-weight:700; font-size:18px; }
+  .achievement-popup { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px); background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#000; padding:12px 20px; border-radius:12px; font-weight:600; font-size:13px; z-index:2000; transition:transform 0.5s; box-shadow:0 4px 20px rgba(251,191,36,0.4); }
+  .achievement-show { transform:translateX(-50%) translateY(0); }
+  .hidden { display:none !important; }
+  @media (prefers-color-scheme: dark) { .miner-circle { background:linear-gradient(145deg,#2a2a2a,#1a1a1a); color:#fff; } }
+</style>
 </head>
 <body>
-  <header>
-    <img src="icon.png" alt="CRYPTA Logo"/>
-    <h1>CRYPTA Mining Game</h1>
-  </header>
 
-  <div id="game">
-    <p id="score">Score: 0</p>
-    <button id="mine-btn">⛏ Mine</button>
+<div class="container">
+
+  <div class="header">
+    <img src="icon.png" alt="CRYPTA Logo" width="80" style="margin-bottom:10px;">
+    <h1 class="title">⛏️ CRYPTA Miner</h1>
+    <p class="subtitle">Tap to mine cryptocurrency!</p>
+    <div class="level-badge" id="levelBadge">Level 1 - Rookie</div>
   </div>
 
-  <form id="whitelist-form">
-    <input type="email" id="email" placeholder="Enter your email" required />
-    <button type="submit">Join Whitelist</button>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-value" id="score">0</div><div class="stat-label">💰 Crypto</div></div>
+    <div class="stat-card"><div class="stat-value" id="time">30s</div><div class="stat-label">⏰ Time</div></div>
+  </div>
+
+  <div class="stats-mini">
+    <div class="stat-card-mini"><div class="stat-value-mini" id="multiplier">×1</div><div class="stat-label-mini">Multiplier</div></div>
+    <div class="stat-card-mini"><div class="stat-value-mini" id="combo">0</div><div class="stat-label-mini">Combo</div></div>
+  </div>
+
+  <div class="miner-container">
+    <div class="miner-circle" id="mineBtn">⛏️</div>
+    <div class="combo-indicator" id="comboIndicator">Combo!</div>
+  </div>
+
+  <p id="highscore-msg" style="color:#ff00ff; text-shadow:0 0 5px #ff00ff; font-size:18px; text-align:center; margin-bottom:20px;">
+    🏆 Il punteggio più alto vincerà un premio in CRYPTA!
+  </p>
+
+  <form id="whitelistForm">
+    <input type="text" id="name" placeholder="Nome" style="width:100%; padding:12px; margin-bottom:8px; border-radius:8px; border:none;">
+    <input type="email" id="email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:8px; border-radius:8px; border:none;">
+    <button type="submit" class="btn-primary">Iscriviti alla Whitelist</button>
+    <p id="status" style="margin-top:8px;"></p>
   </form>
 
-  <script>
-    let score = 0;
-    const scoreElement = document.getElementById("score");
-    const mineBtn = document.getElementById("mine-btn");
+</div>
 
-    mineBtn.addEventListener("click", () => {
-      score++;
-      scoreElement.textContent = "Score: " + score;
-    });
+<div id="particles-js" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;"></div>
 
-    const form = document.getElementById("whitelist-form");
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      alert(`Thanks for joining the whitelist, ${email}! Your score: ${score}`);
-      form.reset();
-    });
-  </script>
+<script>
+  // PARTICLES
+  particlesJS("particles-js", {
+    particles: { number:{value:80}, color:{value:["#00cfff","#ff00ff"]}, shape:{type:"circle"}, opacity:{value:0.5}, size:{value:3},
+    line_linked:{enable:true,distance:120,color:"#00cfff",opacity:0.3,width:1},
+    move:{enable:true,speed:2} },
+    interactivity: { detect_on:"canvas", events:{ onhover:{enable:true,mode:"repulse"}, onclick:{enable:true,mode:"push"} },
+    modes:{ repulse:{distance:100}, push:{particles_nb:4} } }
+  });
+
+  // EMAILJS
+  emailjs.init("lVbvQ-k8Ag55E0Bqa");
+  const form = document.getElementById("whitelistForm");
+  const status = document.getElementById("status");
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!name || !email){ status.textContent="❌ Compila tutti i campi"; return; }
+    if(!re.test(email)){ status.textContent="❌ Inserisci un'email valida"; return; }
+    const templateParams = {
+      subject:`🎯 Nuova Whitelist NFT - ${name}`,
+      from_name:name,
+      from_email:email,
+      reply_to:email,
+      date:new Date().toLocaleString(),
+      site: window.location.hostname,
+      message:`Nuova richiesta di iscrizione whitelist da ${name} (${email})`
+    };
+    emailjs.send("service_0dcu1j8","template_edsdw29",templateParams)
+      .then(res=>{ status.textContent="✅ Iscrizione completata! 💜"; form.reset(); setTimeout(()=>{status.textContent=""},5000); })
+      .catch(err=>{ status.textContent="❌ Errore tecnico. Riprova più tardi."; console.error(err); });
+  });
+
+  // GAME LOGIC
+  let score = 0;
+  let highScore = 0;
+  const scoreElement = document.getElementById("score");
+  const highScoreMsg = document.getElementById("highscore-msg");
+  const mineBtn = document.getElementById("mineBtn");
+  const comboIndicator = document.getElementById("comboIndicator");
+  let combo = 0;
+
+  mineBtn.addEventListener("click", () => {
+    score++;
+    combo++;
+    scoreElement.textContent = score;
+
+    // Mostra combo se > 1
+    if(combo > 1){
+      comboIndicator.style.display="block";
+      setTimeout(()=>{comboIndicator.style.display="none"},500);
+    }
+
+    if(score > highScore){
+      highScore = score;
+      highScoreMsg.textContent = "🏆 Nuovo punteggio più alto! Vinci CRYPTA se resti in vetta!";
+      highScoreMsg.style.color = "#00ffcc";
+      highScoreMsg.style.textShadow = "0 0 10px #00ffcc";
+    }
+  });
+</script>
+
 </body>
 </html>
